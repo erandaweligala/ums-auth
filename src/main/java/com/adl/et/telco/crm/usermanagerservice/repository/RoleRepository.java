@@ -14,7 +14,9 @@ import java.util.Optional;
 @Repository
 public interface RoleRepository extends JpaRepository<Roles, Long> {
 
-    @Query(value = "SELECT UUID_SHORT()", nativeQuery = true)
+    // Oracle: requires sequence UMS_UUID_SEQ to exist in the schema
+    // (CREATE SEQUENCE ums_uuid_seq START WITH 1 INCREMENT BY 1 NOCACHE).
+    @Query(value = "SELECT ums_uuid_seq.NEXTVAL FROM dual", nativeQuery = true)
     Long generateUuidShort();
 
     @Query(value = "SELECT COALESCE(MAX(id), 0) + 1 FROM roles", nativeQuery = true)

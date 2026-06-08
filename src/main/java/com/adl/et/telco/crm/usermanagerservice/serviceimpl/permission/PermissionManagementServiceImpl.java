@@ -284,7 +284,7 @@ public class PermissionManagementServiceImpl implements PermissionManagementInte
             Map<String, String> filterDataMap = filterValueExtractor.extractFilterValues(tableFilterRequest.getFilterValues());
 
             String sql = "SELECT\n" +
-                    "    CAST(p.id AS CHAR) AS permissionId,\n" +
+                    "    TO_CHAR(p.id) AS permissionId,\n" +
                     "    p.name,\n" +
                     "    p.description,\n" +
                     "    c.name AS componentName,\n" +
@@ -298,37 +298,37 @@ public class PermissionManagementServiceImpl implements PermissionManagementInte
                     "    p.tenant_id = :tenantId\n" +
                     "    AND (\n" +
                     "        (:permissionId IS NULL AND :permissionIdFilterType IS NULL) OR\n" +
-                    "        (:permissionIdFilterType = 'Equal' AND CAST(p.id AS CHAR) = :permissionId) OR\n" +
-                    "        (:permissionIdFilterType = 'Include' AND CAST(p.id AS CHAR) LIKE CONCAT('%', :permissionId, '%')) OR\n" +
+                    "        (:permissionIdFilterType = 'Equal' AND TO_CHAR(p.id) = :permissionId) OR\n" +
+                    "        (:permissionIdFilterType = 'Include' AND TO_CHAR(p.id) LIKE '%' || :permissionId || '%') OR\n" +
                     "        (:permissionIdFilterType = 'Is empty' AND (p.id IS NULL OR p.id = ''))\n" +
                     "    )\n" +
                     "    AND (\n" +
                     "        (:name IS NULL AND :nameFilterType IS NULL) OR\n" +
                     "        (:nameFilterType = 'Equal' AND LOWER(p.name) = LOWER(:name)) OR\n" +
-                    "        (:nameFilterType = 'Include' AND LOWER(p.name) LIKE CONCAT('%', LOWER(:name), '%')) OR\n" +
+                    "        (:nameFilterType = 'Include' AND LOWER(p.name) LIKE '%' || LOWER(:name) || '%') OR\n" +
                     "        (:nameFilterType = 'Is empty' AND (p.name IS NULL OR p.name = ''))\n" +
                     "    )\n" +
                     "    AND (\n" +
                     "        (:description IS NULL AND :descriptionFilterType IS NULL) OR\n" +
                     "        (:descriptionFilterType = 'Equal' AND LOWER(p.description) = LOWER(:description)) OR\n" +
-                    "        (:descriptionFilterType = 'Include' AND LOWER(p.description) LIKE CONCAT('%', LOWER(:description), '%')) OR\n" +
+                    "        (:descriptionFilterType = 'Include' AND LOWER(p.description) LIKE '%' || LOWER(:description) || '%') OR\n" +
                     "        (:descriptionFilterType = 'Is empty' AND (p.description IS NULL OR p.description = ''))\n" +
                     "    )\n" +
                     "    AND (\n" +
                     "        (:componentName IS NULL AND :componentNameFilterType IS NULL) OR\n" +
                     "        (:componentNameFilterType = 'Equal' AND LOWER(c.name) = LOWER(:componentName)) OR\n" +
-                    "        (:componentNameFilterType = 'Include' AND LOWER(c.name) LIKE CONCAT('%', LOWER(:componentName), '%')) OR\n" +
+                    "        (:componentNameFilterType = 'Include' AND LOWER(c.name) LIKE '%' || LOWER(:componentName) || '%') OR\n" +
                     "        (:componentNameFilterType = 'Is empty' AND (c.name IS NULL OR c.name = ''))\n" +
                     "    )\n" +
                     "    AND (\n" +
                     "        (:menuName IS NULL AND :menuNameFilterType IS NULL) OR\n" +
                     "        (:menuNameFilterType = 'Equal' AND LOWER(m.name) = LOWER(:menuName)) OR\n" +
-                    "        (:menuNameFilterType = 'Include' AND LOWER(m.name) LIKE CONCAT('%', LOWER(:menuName), '%')) OR\n" +
+                    "        (:menuNameFilterType = 'Include' AND LOWER(m.name) LIKE '%' || LOWER(:menuName) || '%') OR\n" +
                     "        (:menuNameFilterType = 'Is empty' AND (m.name IS NULL OR m.name = ''))\n" +
                     "    )\n" +
                     "ORDER BY\n" +
                     "    p.id DESC\n" +
-                    "LIMIT :limit OFFSET :offset";
+                    "OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY";
 
             List<Object[]> results = entityManager.createNativeQuery(sql)
                     .setParameter("permissionId",          filterDataMap.get("permissionId"))

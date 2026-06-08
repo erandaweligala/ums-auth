@@ -29,7 +29,7 @@ import java.util.List;
 @NamedNativeQuery(
         name = "Status.getUserStatus",
         resultSetMapping = "getUserStatusMapping",
-        query = "select CAST(s.id as CHAR) as value , s.name as label from status s where s.id <> 4"
+        query = "select TO_CHAR(s.id) as value , s.name as label from status s where s.id <> 4"
 )
 
 public class Status {

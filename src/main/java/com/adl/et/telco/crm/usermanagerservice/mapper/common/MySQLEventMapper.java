@@ -33,7 +33,7 @@ import java.util.*;
  *   <li>No direct DB writes from UMS — everything goes via Kafka to db-write-service.</li>
  *
  *   <li><b>All CREATE flows</b> now use a single-publish pattern:
- *       The parent row id is generated upfront via {@code UUID_SHORT()} (a direct DB call,
+ *       The parent row id is generated upfront via {@code getNextXxxId()} (a direct DB call,
  *       not via Kafka), so the id is known before publishing. The parent INSERT and all
  *       join-table INSERTs are bundled as {@code relatedWrites} on one Kafka message.
  *       This eliminates the old two-step INSERT → SELECT-back pattern which was
@@ -42,10 +42,10 @@ import java.util.*;
  *   <li><b>EDIT flows</b> continue to bundle all DML (UPDATE parent + DELETE old +
  *       INSERT new) as {@code relatedWrites} on the parent UPDATE — unchanged.</li>
  *
- *   <li>Id generation uses {@code UUID_SHORT()} via a native JPA query on the
- *       respective repository. This returns a guaranteed-unique 64-bit Long per
- *       MySQL instance with no schema type change required — only AUTO_INCREMENT
- *       must be dropped from the three affected tables (users, roles, permission).</li>
+ *   <li>Id generation uses {@code SELECT COALESCE(MAX(id), 0) + 1} via a native JPA
+ *       query ({@code getNextUserId()}, {@code getNextRoleId()},
+ *       {@code getNextPermissionId()}) on the respective repository. This is portable
+ *       SQL with no database-specific functions, so it runs unchanged on Oracle.</li>
  *
  *   <li>{@code DBWriteRequestMySQL} uses plain {@code @Builder} —
  *       {@code toBuilder()} is not available.</li>
@@ -53,28 +53,15 @@ import java.util.*;
  *   <li>{@link BaseException} requires all 5 constructor arguments.</li>
  * </ul>
  *
- * <h3>Required DDL (run once — drops AUTO_INCREMENT, keeps BIGINT)</h3>
+ * <h3>Id columns (users, roles, permission)</h3>
  * <pre>
- * ALTER TABLE users      MODIFY COLUMN id BIGINT NOT NULL;
- * ALTER TABLE roles      MODIFY COLUMN id BIGINT NOT NULL;
- * ALTER TABLE permission MODIFY COLUMN id BIGINT NOT NULL;
+ * The {@code id} of users / roles / permission is assigned by the application
+ * (see getNextXxxId() above) and persisted with @Id only — no @GeneratedValue.
+ * On Oracle the column is a plain NUMBER; no identity/sequence is required for
+ * these three tables.
  * </pre>
  *
- * <h3>Required entity changes</h3>
- * <pre>
- * Users.java      — remove @GeneratedValue(strategy = GenerationType.IDENTITY)
- * Roles.java      — remove @GeneratedValue(strategy = GenerationType.IDENTITY)
- * Permission.java — remove @GeneratedValue(strategy = GenerationType.IDENTITY)
- * </pre>
- *
- * <h3>Required repository changes</h3>
- * <pre>
- * CrmUserRepository     — add: @Query(value="SELECT UUID_SHORT()", nativeQuery=true) Long generateUuidShort();
- * RoleRepository        — add: @Query(value="SELECT UUID_SHORT()", nativeQuery=true) Long generateUuidShort();
- * PermissionsRepository — add: @Query(value="SELECT UUID_SHORT()", nativeQuery=true) Long generateUuidShort();
- * </pre>
- *
- * <h3>Table / column reference (MySQL, lowercase snake_case)</h3>
+ * <h3>Table / column reference (lowercase snake_case)</h3>
  * <pre>
  * users                    id, name, email, mobile_number, user_name,
  *                          status_id, user_account, user_type, default_group,
@@ -126,7 +113,7 @@ public class MySQLEventMapper {
     /**
      * Single-publish CREATE flow for users + user_to_roles.
      *
-     * <p>The user id is generated upfront via {@code UUID_SHORT()} so both the
+     * <p>The user id is generated upfront via {@code getNextUserId()} so both the
      * parent INSERT and the join-table INSERT can be bundled as {@code relatedWrites}
      * in one Kafka message. No SELECT-back after publish is needed.
      *
@@ -247,14 +234,14 @@ public class MySQLEventMapper {
 
         String sql =
                 "UPDATE users " +
-                        "JOIN user_to_roles ON users.id = user_to_roles.user_id " +
-                        "SET users.status_id = ? " +
+                        "SET status_id = ? " +
                         "WHERE users.status_id = ? " +
-                        "AND TIMESTAMPDIFF(DAY, " +
-                        "    STR_TO_DATE(SUBSTRING_INDEX(users.last_login_datetime, '.', 1), " +
-                        "    '%Y-%m-%d %H:%i:%s'), CURDATE()) > ? " +
-                        "AND user_to_roles.role_id IN " +
-                        "    (SELECT id FROM roles WHERE tenant_id = ?)";
+                        "AND TRUNC(SYSDATE) - TO_DATE(" +
+                        "    REGEXP_SUBSTR(users.last_login_datetime, '^[^.]+'), " +
+                        "    'YYYY-MM-DD HH24:MI:SS') > ? " +
+                        "AND EXISTS (SELECT 1 FROM user_to_roles utr " +
+                        "    WHERE utr.user_id = users.id " +
+                        "    AND utr.role_id IN (SELECT id FROM roles WHERE tenant_id = ?))";
 
         publish(
                 DBWriteRequestMySQL.builder()
@@ -275,7 +262,7 @@ public class MySQLEventMapper {
     /**
      * Single-publish CREATE flow for roles + role_to_permissions.
      *
-     * <p>The role id is generated upfront via {@code UUID_SHORT()} so the parent
+     * <p>The role id is generated upfront via {@code getNextRoleId()} so the parent
      * INSERT and all join-table INSERTs can be bundled as {@code relatedWrites}
      * in one Kafka message. No SELECT-back after publish is needed.
      *
@@ -392,7 +379,7 @@ public class MySQLEventMapper {
     /**
      * Single-publish CREATE flow for permission + join tables.
      *
-     * <p>The permission id is generated upfront via {@code UUID_SHORT()} so the
+     * <p>The permission id is generated upfront via {@code getNextPermissionId()} so the
      * parent INSERT and all join-table INSERTs can be bundled as {@code relatedWrites}
      * in one Kafka message. No SELECT-back after publish is needed.
      *

@@ -64,47 +64,47 @@ public class QueryBuilder {
         baseSql.append(Constants.AND_WITH_SPACE).append(tableName).append(Constants.DOT).append(dbColumn);
         switch (normalizedOp) {
             case "last 30 minutes":
-                baseSql.append(" >= NOW() - INTERVAL 30 MINUTE");
+                baseSql.append(" >= SYS_EXTRACT_UTC(SYSTIMESTAMP) - INTERVAL '30' MINUTE");
                 break;
             case "last day":
-                baseSql.append(" >= NOW() - INTERVAL 1 DAY");
+                baseSql.append(" >= SYS_EXTRACT_UTC(SYSTIMESTAMP) - INTERVAL '1' DAY");
                 break;
             case "last week":
-                baseSql.append(" >= NOW() - INTERVAL 7 DAY");
+                baseSql.append(" >= SYS_EXTRACT_UTC(SYSTIMESTAMP) - INTERVAL '7' DAY");
                 break;
             case "last year":
-                baseSql.append(" >= NOW() - INTERVAL 1 YEAR");
+                baseSql.append(" >= SYS_EXTRACT_UTC(SYSTIMESTAMP) - INTERVAL '1' YEAR");
                 break;
             case "between":
                 if (values.length >= 2) {
-                    baseSql.append(" BETWEEN CONVERT_TZ('").append(values[0]).append(Constants.TIME_QUERY_START)
-                            .append(" AND CONVERT_TZ('").append(values[1]).append(Constants.TIME_QUERY_END);
+                    baseSql.append(" BETWEEN CAST(FROM_TZ(TO_TIMESTAMP('").append(values[0]).append(Constants.TIME_QUERY_START)
+                            .append(" AND CAST(FROM_TZ(TO_TIMESTAMP('").append(values[1]).append(Constants.TIME_QUERY_END);
                 }
                 break;
             case "include":
                 if (values.length >= 1) {
-                    baseSql.append(" BETWEEN CONVERT_TZ('").append(values[0]).append(Constants.TIME_QUERY_START)
-                            .append(" AND CONVERT_TZ('").append(values[0]).append(Constants.TIME_QUERY_END);
+                    baseSql.append(" BETWEEN CAST(FROM_TZ(TO_TIMESTAMP('").append(values[0]).append(Constants.TIME_QUERY_START)
+                            .append(" AND CAST(FROM_TZ(TO_TIMESTAMP('").append(values[0]).append(Constants.TIME_QUERY_END);
                 }
                 break;
             case "greater than":
                 if (values.length >= 1) {
-                    baseSql.append(" > CONVERT_TZ('").append(values[0]).append(Constants.TIME_QUERY_END);
+                    baseSql.append(" > CAST(FROM_TZ(TO_TIMESTAMP('").append(values[0]).append(Constants.TIME_QUERY_END);
                 }
                 break;
             case "greater than or equal":
                 if (values.length >= 1) {
-                    baseSql.append(" >= CONVERT_TZ('").append(values[0]).append(Constants.TIME_QUERY_START);
+                    baseSql.append(" >= CAST(FROM_TZ(TO_TIMESTAMP('").append(values[0]).append(Constants.TIME_QUERY_START);
                 }
                 break;
             case "less than":
                 if (values.length >= 1) {
-                    baseSql.append(" < CONVERT_TZ('").append(values[0]).append(Constants.TIME_QUERY_START);
+                    baseSql.append(" < CAST(FROM_TZ(TO_TIMESTAMP('").append(values[0]).append(Constants.TIME_QUERY_START);
                 }
                 break;
             case "less than or equal":
                 if (values.length >= 1) {
-                    baseSql.append(" <= CONVERT_TZ('").append(values[0]).append(Constants.TIME_QUERY_END);
+                    baseSql.append(" <= CAST(FROM_TZ(TO_TIMESTAMP('").append(values[0]).append(Constants.TIME_QUERY_END);
                 }
                 break;
             default:

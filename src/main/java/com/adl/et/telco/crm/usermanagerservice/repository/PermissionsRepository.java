@@ -14,7 +14,9 @@ import java.util.Optional;
 
 @Repository
 public interface PermissionsRepository extends JpaRepository<Permission, Long> {
-    @Query(value = "SELECT UUID_SHORT()", nativeQuery = true)
+    // Oracle: requires sequence UMS_UUID_SEQ to exist in the schema
+    // (CREATE SEQUENCE ums_uuid_seq START WITH 1 INCREMENT BY 1 NOCACHE).
+    @Query(value = "SELECT ums_uuid_seq.NEXTVAL FROM dual", nativeQuery = true)
     Long generateUuidShort();
     @Query(nativeQuery = true)
     List<PermissionView> getPermissionList(Long tenantId,String permissionName, Long menuId, Long componentId, int limit, int offset);
@@ -25,7 +27,7 @@ public interface PermissionsRepository extends JpaRepository<Permission, Long> {
 
     List<Permission> findAllByTenantId(long tenantId);
 
-    @Query(nativeQuery = true, value = "SELECT EXISTS(select * from permission p where LOWER(p.name) = LOWER(:name) and p.menu_id = :menuId and p.component_id = :componentId and p.tenant_id = :tenantId ) ")
+    @Query(nativeQuery = true, value = "SELECT CASE WHEN EXISTS(select 1 from permission p where LOWER(p.name) = LOWER(:name) and p.menu_id = :menuId and p.component_id = :componentId and p.tenant_id = :tenantId ) THEN 1 ELSE 0 END FROM dual ")
     int isAlreadyExist(String name, Long menuId, Long componentId, Long tenantId);
 
     List<PermissionView> getFilteredPermissionList(String id, String idFilterType,

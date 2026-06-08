@@ -74,7 +74,7 @@ import java.util.List;
         name = "Permission.getPermissionList",
         resultSetMapping = "getPermissionListMapping",
         query = "select\n" +
-                "\tcast(t.permissionId as char) as permissionId ,\n" +
+                "\tTO_CHAR(t.permissionId) as permissionId ,\n" +
                 "\tt.name,\n" +
                 "\tt.description,\n" +
                 "\tt.componentname ,\n" +
@@ -104,7 +104,7 @@ import java.util.List;
                 "\t\t\tand (:componentId is null\n" +
                 "\t\t\t\tor p1.component_id = :componentId )\n" +
                 "\t\t\tand ( :permissionName is null\n" +
-                "\t\t\t\tor p1.name like CONCAT('%',  :permissionName,'%') )) p\n" +
+                "\t\t\t\tor p1.name like '%' || :permissionName || '%' )) p\n" +
                 "\tleft join components c\n" +
                 "                      on\n" +
                 "\t\tp.component_id = c.id\n" +
@@ -132,7 +132,7 @@ import java.util.List;
                 "\t\t\t\tand (:componentId is null\n" +
                 "\t\t\t\tor p1.component_id = :componentId )\n" +
                 "\t\t\tand ( :permissionName is null\n" +
-                "\t\t\t\tor p1.name like CONCAT('%',  :permissionName,'%') )) p\n" +
+                "\t\t\t\tor p1.name like '%' || :permissionName || '%' )) p\n" +
                 "\tleft join components c\n" +
                 "                                on\n" +
                 "\t\tp.component_id = c.id\n" +
@@ -142,7 +142,7 @@ import java.util.List;
                 "                                on\n" +
                 "\t\tm.id = c.menu_id) total_count\n" +
                 "ORDER BY t.permissionId DESC\n" +
-                "limit :limit OFFSET :offset"
+                "OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY"
 )
 @NamedNativeQuery(
         name = "Permission.findPermissionDetails",
@@ -151,14 +151,14 @@ import java.util.List;
                 "\ta.id as action_id,\n" +
                 "\ta.is_main_action ,\n" +
                 "\ta.main_action_id ,a.name as action_name ,\n" +
-                "\tif(pta.action_id is not null,\n" +
-                "\ttrue,\n" +
-                "\tfalse) as action_is_selected,\n" +
+                "\tCASE WHEN pta.action_id is not null\n" +
+                "\tTHEN 1\n" +
+                "\tELSE 0 END as action_is_selected,\n" +
                 "\ta2.id as attribute_id,\n" +
                 "\ta2.name as attribute_name,\n" +
-                "\tif(pta2.attribute_id  is not null,\n" +
-                "\ttrue,\n" +
-                "\tfalse) as attribute_is_selected\n" +
+                "\tCASE WHEN pta2.attribute_id  is not null\n" +
+                "\tTHEN 1\n" +
+                "\tELSE 0 END as attribute_is_selected\n" +
                 "from\n" +
                 "\tpermission p\n" +
                 "inner join components c on\n" +
@@ -171,7 +171,7 @@ import java.util.List;
                 "left join permission_to_actions pta on\n" +
                 "\tpta.permission_id = p.id\n" +
                 "\tand pta.action_id = a.id\n" +
-                "left join `attributes` a2 on\n" +
+                "left join attributes a2 on\n" +
                 "\ta2.action_id = a.id\n" +
                 "left join permission_to_attributes pta2 on\n" +
                 "\ta2.id = pta2.attribute_id\n" +
@@ -193,7 +193,7 @@ import java.util.List;
                 "\ta.id = att.action_id\n" +
                 "\tand att.tenant_id = :tenantId\n" +
                 "\tand a.component_id = :componantId\n" +
-                "left join `attributes` a2 on\n" +
+                "left join attributes a2 on\n" +
                 "\ta2.action_id = a.id "
 )
 
@@ -218,7 +218,7 @@ import java.util.List;
         name = "Permission.getFilteredPermissionList",
         resultSetMapping = "getFilteredPermissionListMapping",
         query = "SELECT\n" +
-                "    CAST(p.id AS CHAR) AS permissionId,\n" +
+                "    TO_CHAR(p.id) AS permissionId,\n" +
                 "    p.name,\n" +
                 "    p.description,\n" +
                 "    c.name AS componentName,\n" +
@@ -232,25 +232,25 @@ import java.util.List;
                 "    AND (\n" +
                 "        :name IS NULL OR\n" +
                 "        (:nameFilterType = 'Equal' AND LOWER(p.name) = LOWER(:name)) OR\n" +
-                "        (:nameFilterType = 'Include' AND LOWER(p.name) LIKE CONCAT('%', LOWER(:name), '%')) OR\n" +
+                "        (:nameFilterType = 'Include' AND LOWER(p.name) LIKE '%' || LOWER(:name) || '%') OR\n" +
                 "        (:nameFilterType = 'Is empty' AND (p.name IS NULL OR p.name = ''))\n" +
                 "    )\n" +
                 "    AND (\n" +
                 "        :description IS NULL OR\n" +
                 "        (:descriptionFilterType = 'Equal' AND LOWER(p.description) = LOWER(:description)) OR\n" +
-                "        (:descriptionFilterType = 'Include' AND LOWER(p.description) LIKE CONCAT('%', LOWER(:description), '%')) OR\n" +
+                "        (:descriptionFilterType = 'Include' AND LOWER(p.description) LIKE '%' || LOWER(:description) || '%') OR\n" +
                 "        (:descriptionFilterType = 'Is empty' AND (p.description IS NULL OR p.description = ''))\n" +
                 "    )\n" +
                 "    AND (\n" +
                 "        :componentName IS NULL OR\n" +
                 "        (:componentNameFilterType = 'Equal' AND LOWER(c.name) = LOWER(:componentName)) OR\n" +
-                "        (:componentNameFilterType = 'Include' AND LOWER(c.name) LIKE CONCAT('%', LOWER(:componentName), '%')) OR\n" +
+                "        (:componentNameFilterType = 'Include' AND LOWER(c.name) LIKE '%' || LOWER(:componentName) || '%') OR\n" +
                 "        (:componentNameFilterType = 'Is empty' AND (c.name IS NULL OR c.name = ''))\n" +
                 "    )\n" +
                 "    AND (\n" +
                 "        :menuName IS NULL OR\n" +
                 "        (:menuNameFilterType = 'Equal' AND LOWER(m.name) = LOWER(:menuName)) OR\n" +
-                "        (:menuNameFilterType = 'Include' AND LOWER(m.name) LIKE CONCAT('%', LOWER(:menuName), '%')) OR\n" +
+                "        (:menuNameFilterType = 'Include' AND LOWER(m.name) LIKE '%' || LOWER(:menuName) || '%') OR\n" +
                 "        (:menuNameFilterType = 'Is empty' AND (m.name IS NULL OR m.name = ''))\n" +
                 "    )) AS totalCount\n" +
                 "FROM\n" +
@@ -266,29 +266,29 @@ import java.util.List;
                 "    AND (\n" +
                 "        :name IS NULL OR\n" +
                 "        (:nameFilterType = 'Equal' AND LOWER(p.name) = LOWER(:name)) OR\n" +
-                "        (:nameFilterType = 'Include' AND LOWER(p.name) LIKE CONCAT('%', LOWER(:name), '%')) OR\n" +
+                "        (:nameFilterType = 'Include' AND LOWER(p.name) LIKE '%' || LOWER(:name) || '%') OR\n" +
                 "        (:nameFilterType = 'Is empty' AND (p.name IS NULL OR p.name = ''))\n" +
                 "    )\n" +
                 "    AND (\n" +
                 "        :description IS NULL OR\n" +
                 "        (:descriptionFilterType = 'Equal' AND LOWER(p.description) = LOWER(:description)) OR\n" +
-                "        (:descriptionFilterType = 'Include' AND LOWER(p.description) LIKE CONCAT('%', LOWER(:description), '%')) OR\n" +
+                "        (:descriptionFilterType = 'Include' AND LOWER(p.description) LIKE '%' || LOWER(:description) || '%') OR\n" +
                 "        (:descriptionFilterType = 'Is empty' AND (p.description IS NULL OR p.description = ''))\n" +
                 "    )\n" +
                 "    AND (\n" +
                 "        :componentName IS NULL OR\n" +
                 "        (:componentNameFilterType = 'Equal' AND LOWER(c.name) = LOWER(:componentName)) OR\n" +
-                "        (:componentNameFilterType = 'Include' AND LOWER(c.name) LIKE CONCAT('%', LOWER(:componentName), '%')) OR\n" +
+                "        (:componentNameFilterType = 'Include' AND LOWER(c.name) LIKE '%' || LOWER(:componentName) || '%') OR\n" +
                 "        (:componentNameFilterType = 'Is empty' AND (c.name IS NULL OR c.name = ''))\n" +
                 "    )\n" +
                 "    AND (\n" +
                 "        :menuName IS NULL OR\n" +
                 "        (:menuNameFilterType = 'Equal' AND LOWER(m.name) = LOWER(:menuName)) OR\n" +
-                "        (:menuNameFilterType = 'Include' AND LOWER(m.name) LIKE CONCAT('%', LOWER(:menuName), '%')) OR\n" +
+                "        (:menuNameFilterType = 'Include' AND LOWER(m.name) LIKE '%' || LOWER(:menuName) || '%') OR\n" +
                 "        (:menuNameFilterType = 'Is empty' AND (m.name IS NULL OR m.name = ''))\n" +
                 "    )\n" +
                 "ORDER BY p.id DESC\n" +
-                "LIMIT :limit OFFSET :offset"
+                "OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY"
 )
 
 public class Permission {
