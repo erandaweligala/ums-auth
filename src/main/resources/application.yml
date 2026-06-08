@@ -1,0 +1,161 @@
+server:
+  port: 8085
+  error:
+    include-stacktrace: always
+
+base-url:
+  context: /adl/et/telco/templates/celcom/api/v1.0/base-template
+
+log:
+  identifierKey: UUID
+  isDebug: true
+
+info:
+  app:
+    name: inventory
+    msName: admin-services-user-management
+
+com:
+  adl:
+    dte:
+      plugins:
+        logging:
+          enabled: true
+          level: DEBUG
+        rolling:
+          policy: size
+          size: 100000kb
+        alarming:
+          enabled: true
+        msstat:
+          enabled: false
+
+date-format: yyyy-MM-dd HH:mm:ss.SSSSSS
+
+is-key-cloak-enabled: false
+
+keycloak:
+  access-token-url: http://10.62.185.86:31005/realms/{tenant_id}/protocol/openid-connect/token
+  realm-url: http://10.62.185.86:31005/admin/realms/{tenant_id}
+  tenant-id: dialog-ims
+  client-id: prod-env
+
+spring:
+  datasource:
+    driverClassName: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://mysql.elasti.svc.cluster.local:3306/adauth?createDatabaseIfNotExist=true&serverTimezone=UTC
+    username: authuser
+    password: ${MYSQL_PASSWORD}
+    maxActive: 20
+    maxIdle: 10
+    maxWait: 5000
+  jpa:
+    hibernate:
+      generate-ddl: true
+      show-sql: true
+      ddl-auto: update
+  data:  #need to change in OCP
+    redis:
+      client-type: lettuce
+      password: ${REDIS_PASSWORD}
+      timeout: 120000ms
+      sentinel:
+        master: mymaster
+        nodes:
+          - redis-cluster-headless.cluster-redis.svc.cluster.local:26379
+        password: ${REDIS_PASSWORD}
+      lettuce:
+        pool:
+          max-active: 600        # equivalent to max-pool-size: 600
+          max-wait: 3000ms       # equivalent to max-pool-waiting: 3000
+          max-idle: 200
+          min-idle: 10
+        shutdown-timeout: 240000ms  # equivalent to pool-recycle-timeout: 240000
+
+  kafka:
+    # Local Kafka cluster only — mirroring to DR is infrastructure-level
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka-headless.cluster-dc.svc.cluster.local:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
+      properties:
+        max.in.flight.requests.per.connection: 5
+        compression.type: lz4
+        batch.size: 32768
+        linger.ms: 5
+        buffer.memory: 67108864
+        delivery.timeout.ms: 5000 #need to change in OCP   # ← was 300000 (5 min), now 5s — total send timeout
+        request.timeout.ms: 2000  #need to change in OCP   # ← was 120000 (2 min), now 2s — per-request timeout
+        max.block.ms: 2000
+
+    consumer:
+      group-id: spring-reply-group-ums-dr
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      auto-offset-reset: earliest
+      enable-auto-commit: true
+      properties:
+        fetch.min.bytes: 1
+        fetch.max.wait.ms: 500
+        session.timeout.ms: 10000
+        heartbeat.interval.ms: 3000
+
+  # =============================================================================
+  # UMS MySQL Kafka topics
+  # =============================================================================
+kafka:
+    mysql:
+      # Provisioning topic for this site (DC or DR — set per deployment)
+      # DC deployment: ums-mysql-dc
+      # DR deployment: ums-mysql-dr
+      publish-topic: ${KAFKA_MYSQL_PUBLISH_TOPIC:ums-mysql-dr}
+
+      # Reply topic — db-write-service sends SUCCESS/FAIL here
+      # Must match mp.messaging.outgoing.mysql-responses-out in db-write-service
+      reply-topic: ${KAFKA_MYSQL_REPLY_TOPIC:ums-mysql-reply-dr}
+
+    publish:
+      timeout-ms: 2000
+      retry:
+        enabled: true
+        max-attempts: 2
+
+azure:
+  ad:
+    client-id: ${AZURE_CLIENT_ID}
+    client-secret: ${AZURE_CLIENT_SECRET}
+    application-id: ${AZURE_CLIENT_APPLICATIONID}
+    scope: https://graph.microsoft.com/.default
+  access:
+    token:
+      url: https://login.microsoftonline.com/{applicationId}/oauth2/v2.0/token
+  user-details:
+    url: https://graph.microsoft.com/v1.0/users/{email}?$expand=manager($levels=2;$select=displayName,mail)&$select=id,displayName,mobilePhone,department,officeLocation&$count=true
+  app-role:
+    id: ${AZURE_CLIENT_ROLE}
+  enterprise-app-obj:
+    id: ${AZURE_CLIENT_APP}
+  app-role-assignment:
+    url: https://graph.microsoft.com/v1.0/users/{user_id}/appRoleAssignments
+
+rest-template:
+  read-time-out: 60000
+  connection-time-out: 60000
+
+app-role-assignment-required: false
+
+management:
+  endpoints:
+    web:
+      base-path: /actuator
+      exposure:
+        include: "*"
+  endpoint:
+    prometheus:
+      enabled: true
+  prometheus:
+    metrics:
+      export:
+        enabled: true
