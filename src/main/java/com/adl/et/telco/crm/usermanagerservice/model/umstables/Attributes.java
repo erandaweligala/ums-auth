@@ -11,6 +11,7 @@ import java.util.List;
 @Setter
 @ToString
 @Entity
+@Table(name = "ums_attributes")
 public class Attributes {
     @Id
     @GeneratedValue( strategy = GenerationType.IDENTITY )
@@ -30,7 +31,7 @@ public class Attributes {
 
     @ManyToMany(cascade=CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinTable(
-            name = "ATTRIBUTE_TO_TENANTS",
+            name = "ums_ATTRIBUTE_TO_TENANTS",
             joinColumns = @JoinColumn(name = "ATTRIBUTE_ID"),
             inverseJoinColumns = @JoinColumn(name = "TENANT_ID"))
     private List<Tenants> tenantsList;

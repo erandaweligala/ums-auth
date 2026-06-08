@@ -9,6 +9,7 @@ import java.util.List;
 @Setter
 @ToString
 @Entity
+@Table(name = "ums_tenants")
 @AllArgsConstructor
 @NoArgsConstructor
 public class Tenants {

@@ -14,7 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "users")
+@Table(name = "ums_users")
 @SqlResultSetMapping(
         name = "crmUserDetailMapping",
         classes = {
@@ -84,11 +84,11 @@ import java.util.List;
 @NamedNativeQuery(
         name = "Users.findByUserName",
         resultSetMapping = "crmUserDetailMapping",
-        query = "select password,mobile_number,status_id,last_login_datetime from users where user_name=:userName"
+        query = "select password,mobile_number,status_id,last_login_datetime from ums_users where user_name=:userName"
 )
 @NamedNativeQuery(
         name = "Users.updateCrmUserLastLogTimeAndTid",
-        query = "update users set last_login_datetime = :logTime,session_id=:tid where user_name = :userName"
+        query = "update ums_users set last_login_datetime = :logTime,session_id=:tid where user_name = :userName"
 )
 @NamedNativeQuery(
         name = "Users.getAllUsers",
@@ -125,33 +125,33 @@ import java.util.List;
                 "        u.associated_user_group as userGroup,\n" +
                 "        COALESCE(creator.name, 'SailPoint') as createdBy,\n" +
                 "        TO_CHAR(u.created_datetime, 'YYYY-MM-DD HH24:MI:SS') as createdDate\n" +
-                "    FROM users u\n" +
-                "    LEFT JOIN users creator ON u.created_by = creator.id\n" +
-                "    INNER JOIN status s\n" +
+                "    FROM ums_users u\n" +
+                "    LEFT JOIN ums_users creator ON u.created_by = creator.id\n" +
+                "    INNER JOIN ums_status s\n" +
                 "        ON u.status_id = s.id\n" +
                 "        AND (:statusId IS NULL OR s.id = :statusId)\n" +
                 "        AND u.status_id <> 3\n" +
                 "        AND (:userName IS NULL OR u.name LIKE '%' || :userName || '%')\n" +
-                "    INNER JOIN user_to_roles utr\n" +
+                "    INNER JOIN ums_user_to_roles utr\n" +
                 "        ON u.id = utr.user_id\n" +
                 "        AND (:roleId IS NULL OR utr.role_id = :roleId)\n" +
-                "    INNER JOIN roles r\n" +
+                "    INNER JOIN ums_roles r\n" +
                 "        ON utr.role_id = r.id\n" +
                 "        AND r.tenant_id = :tenantId\n" +
                 ") t\n" +
                 "CROSS JOIN (\n" +
                 "    SELECT\n" +
                 "        COUNT(*) AS totalCount\n" +
-                "    FROM users u\n" +
-                "    INNER JOIN status s\n" +
+                "    FROM ums_users u\n" +
+                "    INNER JOIN ums_status s\n" +
                 "        ON u.status_id = s.id\n" +
                 "        AND (:statusId IS NULL OR s.id = :statusId)\n" +
                 "        AND u.status_id <> 3\n" +
                 "        AND (:userName IS NULL OR u.name LIKE '%' || :userName || '%')\n" +
-                "    INNER JOIN user_to_roles utr\n" +
+                "    INNER JOIN ums_user_to_roles utr\n" +
                 "        ON u.id = utr.user_id\n" +
                 "        AND (:roleId IS NULL OR utr.role_id = :roleId)\n" +
-                "    INNER JOIN roles r\n" +
+                "    INNER JOIN ums_roles r\n" +
                 "        ON utr.role_id = r.id\n" +
                 "        AND r.tenant_id = :tenantId\n" +
                 ") total_count\n" +
@@ -194,11 +194,11 @@ import java.util.List;
                 "        u.associated_user_group AS userGroup,\n" +
                 "        COALESCE(creator.name, 'System') AS createdBy,\n" +
                 "        TO_CHAR(u.created_datetime, 'YYYY-MM-DD HH24:MI:SS') AS createdDate\n" +
-                "    FROM users u\n" +
-                "    LEFT JOIN users creator ON u.created_by = creator.id\n" +
-                "    INNER JOIN status s ON u.status_id = s.id\n" +
-                "    INNER JOIN user_to_roles utr ON u.id = utr.user_id\n" +
-                "    INNER JOIN roles r ON utr.role_id = r.id AND r.tenant_id = :tenantId\n" +
+                "    FROM ums_users u\n" +
+                "    LEFT JOIN ums_users creator ON u.created_by = creator.id\n" +
+                "    INNER JOIN ums_status s ON u.status_id = s.id\n" +
+                "    INNER JOIN ums_user_to_roles utr ON u.id = utr.user_id\n" +
+                "    INNER JOIN ums_roles r ON utr.role_id = r.id AND r.tenant_id = :tenantId\n" +
                 "    WHERE u.status_id <> 3\n" +
                 "      AND (\n" +
                 "          (:userId IS NULL AND :userIdFilterType IS NULL) OR\n" +
@@ -269,10 +269,10 @@ import java.util.List;
                 ") t\n" +
                 "CROSS JOIN (\n" +
                 "    SELECT COUNT(*) AS totalCount\n" +
-                "    FROM users u\n" +
-                "    INNER JOIN status s ON u.status_id = s.id\n" +
-                "    INNER JOIN user_to_roles utr ON u.id = utr.user_id\n" +
-                "    INNER JOIN roles r ON utr.role_id = r.id AND r.tenant_id = :tenantId\n" +
+                "    FROM ums_users u\n" +
+                "    INNER JOIN ums_status s ON u.status_id = s.id\n" +
+                "    INNER JOIN ums_user_to_roles utr ON u.id = utr.user_id\n" +
+                "    INNER JOIN ums_roles r ON utr.role_id = r.id AND r.tenant_id = :tenantId\n" +
                 "    WHERE u.status_id <> 3\n" +
                 "      AND (\n" +
                 "          (:userId IS NULL AND :userIdFilterType IS NULL) OR\n" +
@@ -371,7 +371,7 @@ public class Users implements Comparable<Users> {
     @JoinColumn(name = "STATUS_ID")
     private Status status;
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JoinTable(name = "USER_TO_ROLES",
+    @JoinTable(name = "ums_USER_TO_ROLES",
             joinColumns = @JoinColumn(name = "USER_ID"),
             inverseJoinColumns = @JoinColumn(name = "ROLE_ID"))
     private List<Roles> roles;

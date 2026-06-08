@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 @Setter
 @ToString
 @Entity
+@Table(name = "ums_action_log")
 public class ActionLog {
     @Id
     @GeneratedValue( strategy = GenerationType.IDENTITY )

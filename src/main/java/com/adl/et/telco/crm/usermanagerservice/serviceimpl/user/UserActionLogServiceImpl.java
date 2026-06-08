@@ -130,7 +130,7 @@ public class UserActionLogServiceImpl implements UserActionLogServiceInterface {
     @Override
     public CommonAdaptorResp<List<ActionLogData>> getActionLog(TableFilterRequest tableFilterRequest) throws BaseException {
         try {
-            StringBuilder baseSql = new StringBuilder("FROM action_log a WHERE 1=1");
+            StringBuilder baseSql = new StringBuilder("FROM ums_action_log a WHERE 1=1");
             baseSql = queryBuilder.buildActionLogFiltration(tableFilterRequest.getFilterValues(), baseSql, "a");
 
             String dataSql  = "SELECT * " + baseSql + " ORDER BY a.id desc OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY";

@@ -9,7 +9,7 @@ import java.util.Optional;
 
 @Repository
 public interface KeycloakRepository extends JpaRepository<KeycloakAuth, Long> {
-    @Query(nativeQuery = true, value = "select ka.client_secret from keycloak_auth ka where ka.tenant_id = :tenantId and ka.client_id = :clientId")
+    @Query(nativeQuery = true, value = "select ka.client_secret from ums_keycloak_auth ka where ka.tenant_id = :tenantId and ka.client_id = :clientId")
     Optional<String> findClientSecretByAppAndTenant(String tenantId, String clientId);
 }
 

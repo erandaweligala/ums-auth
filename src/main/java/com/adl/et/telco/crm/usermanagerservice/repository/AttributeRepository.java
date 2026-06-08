@@ -10,10 +10,10 @@ import java.util.List;
 @Repository
 public interface AttributeRepository extends JpaRepository<Attributes, Long> {
 
-    @Query(value = "select * from attributes a where a.action_id in (:actions) and a.id in (select att.attribute_id from attribute_to_tenants att where att.tenant_id =  :tenantId )  ",nativeQuery = true)
+    @Query(value = "select * from ums_attributes a where a.action_id in (:actions) and a.id in (select att.attribute_id from ums_attribute_to_tenants att where att.tenant_id =  :tenantId )  ",nativeQuery = true)
     List<Attributes> getControllableAttributes(List<Long> actions, Long tenantId);
 
-    @Query(value = "select * from attributes a where a.id in (select att.attribute_id from attribute_to_tenants att where att.tenant_id =  :tenantId )  ",nativeQuery = true)
+    @Query(value = "select * from ums_attributes a where a.id in (select att.attribute_id from ums_attribute_to_tenants att where att.tenant_id =  :tenantId )  ",nativeQuery = true)
     List<Attributes> getAttributesDetails(long tenantId);
 }
 

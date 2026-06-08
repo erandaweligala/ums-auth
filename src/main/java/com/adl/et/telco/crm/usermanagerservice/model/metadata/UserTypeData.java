@@ -8,6 +8,7 @@ import lombok.ToString;
 import jakarta.persistence.ColumnResult;
 import jakarta.persistence.ConstructorResult;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -18,6 +19,7 @@ import jakarta.persistence.SqlResultSetMapping;
 @Setter
 @ToString
 @Entity
+@Table(name = "ums_user_type_data")
 @SqlResultSetMapping(
         name = "getUserTypeMetaDataMapping",
         classes = {
@@ -35,7 +37,7 @@ import jakarta.persistence.SqlResultSetMapping;
 @NamedNativeQuery(
         name = "UserTypeData.getUserTypeMetaData",
         resultSetMapping = "getUserTypeMetaDataMapping",
-        query = "select TO_CHAR(u.id) as value , u.name as label from user_type_data u"
+        query = "select TO_CHAR(u.id) as value , u.name as label from ums_user_type_data u"
 )
 public class UserTypeData {
     @Id

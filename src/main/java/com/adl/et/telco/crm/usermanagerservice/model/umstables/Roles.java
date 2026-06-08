@@ -14,6 +14,7 @@ import java.util.List;
 @Setter
 @ToString
 @Entity
+@Table(name = "ums_roles")
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
@@ -68,7 +69,7 @@ import java.util.List;
 @NamedNativeQuery(
         name = "Roles.findRoleListMetaData",
         resultSetMapping = "findRoleListMetaDataMapping",
-        query = "select TO_CHAR(r.id) as value, r.name as label from roles r  where r.tenant_id = :tenantId"
+        query = "select TO_CHAR(r.id) as value, r.name as label from ums_roles r  where r.tenant_id = :tenantId"
 )
 @NamedNativeQuery(
         name = "Roles.findRoleListView",
@@ -118,13 +119,13 @@ import java.util.List;
                 "\tp.description as permissionDescription\n" +
                 "from\n" +
                 "\troles r\n" +
-                "inner join role_to_permissions rtp on\n" +
+                "inner join ums_role_to_permissions rtp on\n" +
                 "\tr.id = rtp.role_id\n" +
                 "\tand r.tenant_id = :tenantId and r.id = :roleId\n" +
-                "\tleft join permission p on p.id = rtp.permission_id \n" +
-                "left join components c on\n" +
+                "\tleft join ums_permission p on p.id = rtp.permission_id \n" +
+                "left join ums_components c on\n" +
                 "\tc.id = p.component_id\n" +
-                "left join menus m on\n" +
+                "left join ums_menus m on\n" +
                 "\tm.id = p.menu_id\n" +
                 "ORDER BY r.id DESC"
 )
@@ -223,7 +224,7 @@ public class Roles {
     private Status status;
 
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JoinTable(name = "ROLE_TO_PERMISSIONS",
+    @JoinTable(name = "ums_ROLE_TO_PERMISSIONS",
             joinColumns = @JoinColumn(name = "ROLE_ID"),
             inverseJoinColumns = @JoinColumn(name = "PERMISSION_ID"))
     private List<Permission> permissionList;

@@ -12,6 +12,7 @@ import java.util.List;
 @Setter
 @ToString
 @Entity
+@Table(name = "ums_actions")
 @SqlResultSetMapping(
         name = "getActionsMapping",
         classes = {
@@ -28,7 +29,7 @@ import java.util.List;
 @NamedNativeQuery(
         name = "Actions.getActions",
         resultSetMapping = "getActionsMapping",
-        query = "select id , name, description from actions a inner join action_to_tenants att on a.id = att.action_id and att.tenant_id = :tenantId"
+        query = "select id , name, description from ums_actions a inner join ums_action_to_tenants att on a.id = att.action_id and att.tenant_id = :tenantId"
 )
 public class Actions {
     @Id
@@ -48,7 +49,7 @@ public class Actions {
 
     @ManyToMany(cascade=CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinTable(
-            name = "ACTION_TO_TENANTS",
+            name = "ums_ACTION_TO_TENANTS",
             joinColumns = @JoinColumn(name = "ACTION_ID"),
             inverseJoinColumns = @JoinColumn(name = "TENANT_ID"))
     private List<Tenants> tenantsList;
