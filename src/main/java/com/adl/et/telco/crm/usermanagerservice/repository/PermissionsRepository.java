@@ -27,7 +27,7 @@ public interface PermissionsRepository extends JpaRepository<Permission, Long> {
 
     List<Permission> findAllByTenantId(long tenantId);
 
-    @Query(nativeQuery = true, value = "SELECT CASE WHEN EXISTS(select 1 from permission p where LOWER(p.name) = LOWER(:name) and p.menu_id = :menuId and p.component_id = :componentId and p.tenant_id = :tenantId ) THEN 1 ELSE 0 END FROM dual ")
+    @Query(nativeQuery = true, value = "SELECT CASE WHEN EXISTS(select 1 from ums_permission p where LOWER(p.name) = LOWER(:name) and p.menu_id = :menuId and p.component_id = :componentId and p.tenant_id = :tenantId ) THEN 1 ELSE 0 END FROM dual ")
     int isAlreadyExist(String name, Long menuId, Long componentId, Long tenantId);
 
     List<PermissionView> getFilteredPermissionList(String id, String idFilterType,
@@ -37,7 +37,7 @@ public interface PermissionsRepository extends JpaRepository<Permission, Long> {
                                                    String menuName, String menuNameFilterType,
                                                    int limit, int offset, long tenantId);
 
-    @Query("SELECT p FROM Permission p WHERE p.name = :name " +
+    @Query("SELECT p FROM ums_permission p WHERE p.name = :name " +
             "AND p.menus.id = :menuId " +
             "AND p.components.id = :componentId " +
             "AND p.tenant.id = :tenantId")
@@ -48,7 +48,7 @@ public interface PermissionsRepository extends JpaRepository<Permission, Long> {
             @Param("tenantId")    Long tenantId
     );
 
-    @Query(value = "SELECT COALESCE(MAX(id), 0) + 1 FROM permission", nativeQuery = true)
+    @Query(value = "SELECT COALESCE(MAX(id), 0) + 1 FROM ums_permission", nativeQuery = true)
     Long getNextPermissionId();
 
 }

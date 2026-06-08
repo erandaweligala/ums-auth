@@ -10,6 +10,7 @@ import java.util.List;
 @Setter
 @ToString
 @Entity
+@Table(name = "ums_status")
 @AllArgsConstructor
 @NoArgsConstructor
 @SqlResultSetMapping(
@@ -29,7 +30,7 @@ import java.util.List;
 @NamedNativeQuery(
         name = "Status.getUserStatus",
         resultSetMapping = "getUserStatusMapping",
-        query = "select TO_CHAR(s.id) as value , s.name as label from status s where s.id <> 4"
+        query = "select TO_CHAR(s.id) as value , s.name as label from ums_status s where s.id <> 4"
 )
 
 public class Status {

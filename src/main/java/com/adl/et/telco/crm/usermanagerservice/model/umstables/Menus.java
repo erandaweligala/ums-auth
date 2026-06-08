@@ -9,6 +9,7 @@ import java.util.List;
 @Setter
 @ToString
 @Entity
+@Table(name = "ums_menus")
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
@@ -28,7 +29,7 @@ public class Menus {
 
     @ManyToMany(cascade=CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinTable(
-            name = "MENU_TO_TENANTS",
+            name = "ums_MENU_TO_TENANTS",
             joinColumns = @JoinColumn(name = "MENU_ID"),
             inverseJoinColumns = @JoinColumn(name = "TENANT_ID"))
     private List<Tenants> tenantsList;

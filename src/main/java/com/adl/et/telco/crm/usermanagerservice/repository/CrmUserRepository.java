@@ -27,7 +27,7 @@ public interface CrmUserRepository extends JpaRepository<Users, Long> {
 
     Optional<Users> findByEmail(String email);
 
-    @Query(value = "select * from users where user_name = ?1", nativeQuery = true)
+    @Query(value = "select * from ums_users where user_name = ?1", nativeQuery = true)
     Optional<Users> getUserForAuthByUserName(String userName);
 
     @Modifying
@@ -36,12 +36,12 @@ public interface CrmUserRepository extends JpaRepository<Users, Long> {
     int updateCrmUserLastLogTimeAndTid(@Param("logTime") String logTime, @Param("tid") String tid, @Param("userName") String userName);
 
     @Query(nativeQuery = true, value = "SELECT CASE WHEN EXISTS(SELECT u.id\n" +
-            "              FROM   users u\n" +
-            "                     INNER JOIN user_to_roles utr\n" +
+            "              FROM   ums_users u\n" +
+            "                     INNER JOIN ums_user_to_roles utr\n" +
             "                             ON u.id = utr.user_id\n" +
             "                                AND LOWER(u.email) = LOWER(:email)\n" +
             "                                AND u.status_id NOT IN ( :validStatusForCreateUser )\n" +
-            "                     INNER JOIN roles r\n" +
+            "                     INNER JOIN ums_roles r\n" +
             "                             ON utr.role_id = r.id\n" +
             "                                AND r.tenant_id = :tenantId) THEN 1 ELSE 0 END FROM dual  ")
     int isExistingUser(String email, List<Long> validStatusForCreateUser, long tenantId);
@@ -53,8 +53,8 @@ public interface CrmUserRepository extends JpaRepository<Users, Long> {
             "  u.* \n" +
             "FROM \n" +
             "  users u \n" +
-            "  INNER JOIN user_to_roles utr ON u.id = utr.user_id \n" +
-            "  INNER JOIN roles r ON utr.role_id = r.id \n" +
+            "  INNER JOIN ums_user_to_roles utr ON u.id = utr.user_id \n" +
+            "  INNER JOIN ums_roles r ON utr.role_id = r.id \n" +
             "WHERE \n" +
             "  u.status_id <> 3 \n" +
             "  AND LOWER(u.email) = LOWER(:email) \n" +
@@ -67,7 +67,7 @@ public interface CrmUserRepository extends JpaRepository<Users, Long> {
             "\tu.user_name\n" +
             "from\n" +
             "\tusers u\n" +
-            "inner join user_to_roles utr on\n" +
+            "inner join ums_user_to_roles utr on\n" +
             "\tu.id = utr.user_id\n" +
             "\tand utr.role_id in (\n" +
             "\tselect\n" +
@@ -121,12 +121,12 @@ public interface CrmUserRepository extends JpaRepository<Users, Long> {
 
     // CrmUserRepository.java
     @Query(nativeQuery = true, value = "SELECT CASE WHEN EXISTS (" +
-            "SELECT 1 FROM users u " +
-            "INNER JOIN user_to_roles utr ON u.id = utr.user_id " +
-            "INNER JOIN roles r ON utr.role_id = r.id AND r.tenant_id = :tenantId " +
+            "SELECT 1 FROM ums_users u " +
+            "INNER JOIN ums_user_to_roles utr ON u.id = utr.user_id " +
+            "INNER JOIN ums_roles r ON utr.role_id = r.id AND r.tenant_id = :tenantId " +
             "WHERE LOWER(u.email) = LOWER(:email)) THEN 1 ELSE 0 END FROM dual")
     Long existsByEmailAndTenantId(@Param("email") String email, @Param("tenantId") Long tenantId);
 
-    @Query(value = "SELECT COALESCE(MAX(id), 0) + 1 FROM users", nativeQuery = true)
+    @Query(value = "SELECT COALESCE(MAX(id), 0) + 1 FROM ums_users", nativeQuery = true)
     Long getNextUserId();
 }

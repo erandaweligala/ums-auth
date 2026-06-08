@@ -8,6 +8,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -16,6 +17,7 @@ import jakarta.persistence.Id;
 @Setter
 @ToString
 @Entity
+@Table(name = "ums_keycloak_auth")
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor

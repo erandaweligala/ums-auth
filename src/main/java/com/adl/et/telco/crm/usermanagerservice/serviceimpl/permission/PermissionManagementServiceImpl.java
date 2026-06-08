@@ -292,8 +292,8 @@ public class PermissionManagementServiceImpl implements PermissionManagementInte
                     "    COUNT(*) OVER() AS totalCount\n" +
                     "FROM\n" +
                     "    permission p\n" +
-                    "LEFT JOIN components c ON c.id = p.component_id\n" +
-                    "LEFT JOIN menus m ON m.id = p.menu_id\n" +
+                    "LEFT JOIN ums_components c ON c.id = p.component_id\n" +
+                    "LEFT JOIN ums_menus m ON m.id = p.menu_id\n" +
                     "WHERE\n" +
                     "    p.tenant_id = :tenantId\n" +
                     "    AND (\n" +

@@ -12,6 +12,7 @@ import java.util.List;
 @Setter
 @ToString
 @Entity
+@Table(name = "ums_permission")
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
@@ -105,12 +106,12 @@ import java.util.List;
                 "\t\t\t\tor p1.component_id = :componentId )\n" +
                 "\t\t\tand ( :permissionName is null\n" +
                 "\t\t\t\tor p1.name like '%' || :permissionName || '%' )) p\n" +
-                "\tleft join components c\n" +
+                "\tleft join ums_components c\n" +
                 "                      on\n" +
                 "\t\tp.component_id = c.id\n" +
                 "\t\tand ( :componentId is null\n" +
                 "\t\t\tor c.id = :componentId )\n" +
-                "\tleft join menus m\n" +
+                "\tleft join ums_menus m\n" +
                 "                      on\n" +
                 "\t\tm.id = c.menu_id) t\n" +
                 "cross join (\n" +
@@ -133,12 +134,12 @@ import java.util.List;
                 "\t\t\t\tor p1.component_id = :componentId )\n" +
                 "\t\t\tand ( :permissionName is null\n" +
                 "\t\t\t\tor p1.name like '%' || :permissionName || '%' )) p\n" +
-                "\tleft join components c\n" +
+                "\tleft join ums_components c\n" +
                 "                                on\n" +
                 "\t\tp.component_id = c.id\n" +
                 "\t\tand ( :componentId is null\n" +
                 "\t\t\tor c.id = :componentId )\n" +
-                "\tleft join menus m\n" +
+                "\tleft join ums_menus m\n" +
                 "                                on\n" +
                 "\t\tm.id = c.menu_id) total_count\n" +
                 "ORDER BY t.permissionId DESC\n" +
@@ -161,19 +162,19 @@ import java.util.List;
                 "\tELSE 0 END as attribute_is_selected\n" +
                 "from\n" +
                 "\tpermission p\n" +
-                "inner join components c on\n" +
+                "inner join ums_components c on\n" +
                 "\tc.menu_id = p.menu_id\n" +
                 "\tand c.id = :componentId\n" +
                 "\tand p.id = :permissionId\n" +
                 "\tand p.tenant_id = :tenantId\n" +
-                "left join actions a on\n" +
+                "left join ums_actions a on\n" +
                 "\ta.component_id = c.id\n" +
-                "left join permission_to_actions pta on\n" +
+                "left join ums_permission_to_actions pta on\n" +
                 "\tpta.permission_id = p.id\n" +
                 "\tand pta.action_id = a.id\n" +
-                "left join attributes a2 on\n" +
+                "left join ums_attributes a2 on\n" +
                 "\ta2.action_id = a.id\n" +
-                "left join permission_to_attributes pta2 on\n" +
+                "left join ums_permission_to_attributes pta2 on\n" +
                 "\ta2.id = pta2.attribute_id\n" +
                 "\tand pta2.permission_id = p.id"
 )
@@ -189,11 +190,11 @@ import java.util.List;
                 "\ta2.name as attribute_name\n" +
                 "from\n" +
                 "\tactions a\n" +
-                "inner join action_to_tenants att on\n" +
+                "inner join ums_action_to_tenants att on\n" +
                 "\ta.id = att.action_id\n" +
                 "\tand att.tenant_id = :tenantId\n" +
                 "\tand a.component_id = :componantId\n" +
-                "left join attributes a2 on\n" +
+                "left join ums_attributes a2 on\n" +
                 "\ta2.action_id = a.id "
 )
 
@@ -223,7 +224,7 @@ import java.util.List;
                 "    p.description,\n" +
                 "    c.name AS componentName,\n" +
                 "    m.name AS menuName,\n" +
-                "    (SELECT COUNT(*) FROM permission p2 \n" +
+                "    (SELECT COUNT(*) FROM ums_permission p2 \n" +
                 "     WHERE p2.tenant_id = :tenantId\n" +
                 "     AND (\n" +
                 "        :id IS NULL OR\n" +
@@ -255,8 +256,8 @@ import java.util.List;
                 "    )) AS totalCount\n" +
                 "FROM\n" +
                 "    permission p\n" +
-                "LEFT JOIN components c ON c.id = p.component_id\n" +
-                "LEFT JOIN menus m ON m.id = p.menu_id\n" +
+                "LEFT JOIN ums_components c ON c.id = p.component_id\n" +
+                "LEFT JOIN ums_menus m ON m.id = p.menu_id\n" +
                 "WHERE\n" +
                 "    p.tenant_id = :tenantId\n" +
                 "    AND (\n" +
@@ -303,14 +304,14 @@ public class Permission {
 
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinTable(
-            name = "PERMISSION_TO_ACTIONS",
+            name = "ums_PERMISSION_TO_ACTIONS",
             joinColumns = @JoinColumn(name = "PERMISSION_ID"),
             inverseJoinColumns = @JoinColumn(name = "ACTION_ID"))
     private List<Actions> actionsList;
 
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JoinTable(
-            name = "PERMISSION_TO_ATTRIBUTES",
+            name = "ums_PERMISSION_TO_ATTRIBUTES",
             joinColumns = @JoinColumn(name = "PERMISSION_ID"),
             inverseJoinColumns = @JoinColumn(name = "ATTRIBUTE_ID"))
     private List<Attributes> attributesList;

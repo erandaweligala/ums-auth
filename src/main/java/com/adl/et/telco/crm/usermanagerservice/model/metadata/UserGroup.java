@@ -8,6 +8,7 @@ import lombok.ToString;
 import jakarta.persistence.ColumnResult;
 import jakarta.persistence.ConstructorResult;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -18,6 +19,7 @@ import jakarta.persistence.SqlResultSetMapping;
 @Setter
 @ToString
 @Entity
+@Table(name = "ums_user_group")
 @SqlResultSetMapping(
         name = "getUserGroupMetaDataMapping",
         classes = {
@@ -35,7 +37,7 @@ import jakarta.persistence.SqlResultSetMapping;
 @NamedNativeQuery(
         name = "UserGroup.getUserGroupMetaData",
         resultSetMapping = "getUserGroupMetaDataMapping",
-        query = "select TO_CHAR(u.id) as value , u.name as label from user_group u"
+        query = "select TO_CHAR(u.id) as value , u.name as label from ums_user_group u"
 )
 public class UserGroup {
     @Id

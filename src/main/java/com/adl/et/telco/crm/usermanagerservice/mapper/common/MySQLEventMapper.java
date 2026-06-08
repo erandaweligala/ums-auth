@@ -92,14 +92,14 @@ public class MySQLEventMapper {
     private static final String DELETE       = "DELETE";
     private static final String NATIVE_QUERY = "NATIVE_QUERY";
 
-    private static final String T_USERS               = "users";
-    private static final String T_USER_TO_ROLES       = "user_to_roles";
-    private static final String T_ROLES               = "roles";
-    private static final String T_ROLE_TO_PERMISSIONS = "role_to_permissions";
-    private static final String T_PERMISSION          = "permission";
-    private static final String T_PERM_TO_ACTIONS     = "permission_to_actions";
-    private static final String T_PERM_TO_ATTRIBUTES  = "permission_to_attributes";
-    private static final String T_ACTION_LOG          = "action_log";
+    private static final String T_USERS               = "ums_users";
+    private static final String T_USER_TO_ROLES       = "ums_user_to_roles";
+    private static final String T_ROLES               = "ums_roles";
+    private static final String T_ROLE_TO_PERMISSIONS = "ums_role_to_permissions";
+    private static final String T_PERMISSION          = "ums_permission";
+    private static final String T_PERM_TO_ACTIONS     = "ums_permission_to_actions";
+    private static final String T_PERM_TO_ATTRIBUTES  = "ums_permission_to_attributes";
+    private static final String T_ACTION_LOG          = "ums_action_log";
 
     private final MySQLKafkaEventPublisher publisher;
     private final CrmUserRepository        crmUserRepository;
@@ -233,15 +233,15 @@ public class MySQLEventMapper {
             throws BaseException {
 
         String sql =
-                "UPDATE users " +
+                "UPDATE ums_users " +
                         "SET status_id = ? " +
                         "WHERE users.status_id = ? " +
                         "AND TRUNC(SYSDATE) - TO_DATE(" +
                         "    REGEXP_SUBSTR(users.last_login_datetime, '^[^.]+'), " +
                         "    'YYYY-MM-DD HH24:MI:SS') > ? " +
-                        "AND EXISTS (SELECT 1 FROM user_to_roles utr " +
+                        "AND EXISTS (SELECT 1 FROM ums_user_to_roles utr " +
                         "    WHERE utr.user_id = users.id " +
-                        "    AND utr.role_id IN (SELECT id FROM roles WHERE tenant_id = ?))";
+                        "    AND utr.role_id IN (SELECT id FROM ums_roles WHERE tenant_id = ?))";
 
         publish(
                 DBWriteRequestMySQL.builder()
