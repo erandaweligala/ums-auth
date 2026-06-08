@@ -17,7 +17,9 @@ import java.util.Optional;
 @Repository
 public interface CrmUserRepository extends JpaRepository<Users, Long> {
 
-    @Query(value = "SELECT UUID_SHORT()", nativeQuery = true)
+    // Oracle: requires sequence UMS_UUID_SEQ to exist in the schema
+    // (CREATE SEQUENCE ums_uuid_seq START WITH 1 INCREMENT BY 1 NOCACHE).
+    @Query(value = "SELECT ums_uuid_seq.NEXTVAL FROM dual", nativeQuery = true)
     Long generateUuidShort();
 
     @Query(nativeQuery = true)
@@ -33,7 +35,7 @@ public interface CrmUserRepository extends JpaRepository<Users, Long> {
     @Query(nativeQuery = true)
     int updateCrmUserLastLogTimeAndTid(@Param("logTime") String logTime, @Param("tid") String tid, @Param("userName") String userName);
 
-    @Query(nativeQuery = true, value = "SELECT EXISTS(SELECT u.id\n" +
+    @Query(nativeQuery = true, value = "SELECT CASE WHEN EXISTS(SELECT u.id\n" +
             "              FROM   users u\n" +
             "                     INNER JOIN user_to_roles utr\n" +
             "                             ON u.id = utr.user_id\n" +
@@ -41,7 +43,7 @@ public interface CrmUserRepository extends JpaRepository<Users, Long> {
             "                                AND u.status_id NOT IN ( :validStatusForCreateUser )\n" +
             "                     INNER JOIN roles r\n" +
             "                             ON utr.role_id = r.id\n" +
-            "                                AND r.tenant_id = :tenantId)  ")
+            "                                AND r.tenant_id = :tenantId) THEN 1 ELSE 0 END FROM dual  ")
     int isExistingUser(String email, List<Long> validStatusForCreateUser, long tenantId);
 
     @Query(nativeQuery = true)
@@ -79,21 +81,26 @@ public interface CrmUserRepository extends JpaRepository<Users, Long> {
     @Transactional
     @Modifying
     @Query(nativeQuery = true, value = "update\n" +
-            "\tusers JOIN user_to_roles  ON users.id = user_to_roles.user_id \n" +
+            "\tusers\n" +
             "set\n" +
-            "\tusers.status_id = 2\n" +
+            "\tstatus_id = 2\n" +
             "where\n" +
             "\tusers.status_id = 1\n" +
-            "\tand TIMESTAMPDIFF(day,\n" +
-            "\tSTR_TO_DATE(SUBSTRING_INDEX(users.last_login_datetime, '.', 1), '%Y-%m-%d %H:%i:%s'),\n" +
-            "\tCURDATE()) > :days\n" +
-            "\tand user_to_roles.role_id  in (\n" +
+            "\tand TRUNC(SYSDATE) - TO_DATE(REGEXP_SUBSTR(users.last_login_datetime, '^[^.]+'), 'YYYY-MM-DD HH24:MI:SS') > :days\n" +
+            "\tand EXISTS (\n" +
             "\tselect\n" +
-            "\t\tid\n" +
+            "\t\t1\n" +
             "\tfrom\n" +
-            "\t\troles r\n" +
+            "\t\tuser_to_roles utr\n" +
             "\twhere\n" +
-            "\t\tr.tenant_id = :tenantId)")
+            "\t\tutr.user_id = users.id\n" +
+            "\t\tand utr.role_id in (\n" +
+            "\t\tselect\n" +
+            "\t\t\tid\n" +
+            "\t\tfrom\n" +
+            "\t\t\troles r\n" +
+            "\t\twhere\n" +
+            "\t\t\tr.tenant_id = :tenantId))")
     void expireUser(Integer days, long tenantId);
 
     @Query(nativeQuery = true)
@@ -113,11 +120,11 @@ public interface CrmUserRepository extends JpaRepository<Users, Long> {
                                             long tenantId);
 
     // CrmUserRepository.java
-    @Query(nativeQuery = true, value = "SELECT EXISTS (" +
+    @Query(nativeQuery = true, value = "SELECT CASE WHEN EXISTS (" +
             "SELECT 1 FROM users u " +
             "INNER JOIN user_to_roles utr ON u.id = utr.user_id " +
             "INNER JOIN roles r ON utr.role_id = r.id AND r.tenant_id = :tenantId " +
-            "WHERE LOWER(u.email) = LOWER(:email))")
+            "WHERE LOWER(u.email) = LOWER(:email)) THEN 1 ELSE 0 END FROM dual")
     Long existsByEmailAndTenantId(@Param("email") String email, @Param("tenantId") Long tenantId);
 
     @Query(value = "SELECT COALESCE(MAX(id), 0) + 1 FROM users", nativeQuery = true)

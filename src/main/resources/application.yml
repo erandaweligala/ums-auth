@@ -42,14 +42,15 @@ keycloak:
 
 spring:
   datasource:
-    driverClassName: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://mysql.elasti.svc.cluster.local:3306/adauth?createDatabaseIfNotExist=true&serverTimezone=UTC
+    driverClassName: oracle.jdbc.OracleDriver
+    url: jdbc:oracle:thin:@//oracle.elasti.svc.cluster.local:1521/adauth
     username: authuser
-    password: ${MYSQL_PASSWORD}
+    password: ${ORACLE_PASSWORD}
     maxActive: 20
     maxIdle: 10
     maxWait: 5000
   jpa:
+    database-platform: org.hibernate.dialect.OracleDialect
     hibernate:
       generate-ddl: true
       show-sql: true

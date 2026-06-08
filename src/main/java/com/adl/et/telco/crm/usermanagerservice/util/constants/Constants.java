@@ -25,8 +25,8 @@ public class Constants {
     public static final String DATE_TIME_PATTERN = "yyyy-MM-dd HH:mm:ss";
     public static final String DOT = ".";
     public static final String AND_WITH_SPACE = " AND ";
-    public static final String TIME_QUERY_START = " 00:00:00.000', '+05:30', '+00:00')";
-    public static final String TIME_QUERY_END = " 23:59:59.999', '+05:30', '+00:00')";
+    public static final String TIME_QUERY_START = " 00:00:00.000', 'YYYY-MM-DD HH24:MI:SS.FF3'), '+05:30') AT TIME ZONE '+00:00' AS TIMESTAMP)";
+    public static final String TIME_QUERY_END = " 23:59:59.999', 'YYYY-MM-DD HH24:MI:SS.FF3'), '+05:30') AT TIME ZONE '+00:00' AS TIMESTAMP)";
 
     private Constants(){}
 

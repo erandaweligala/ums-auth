@@ -133,7 +133,7 @@ public class UserActionLogServiceImpl implements UserActionLogServiceInterface {
             StringBuilder baseSql = new StringBuilder("FROM action_log a WHERE 1=1");
             baseSql = queryBuilder.buildActionLogFiltration(tableFilterRequest.getFilterValues(), baseSql, "a");
 
-            String dataSql  = "SELECT * " + baseSql + " ORDER BY a.id desc LIMIT :limit OFFSET :offset";
+            String dataSql  = "SELECT * " + baseSql + " ORDER BY a.id desc OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY";
             String countSql = "SELECT COUNT(*) " + baseSql;
 
             Query dataQuery  = entityManager.createNativeQuery(dataSql, ActionLog.class);

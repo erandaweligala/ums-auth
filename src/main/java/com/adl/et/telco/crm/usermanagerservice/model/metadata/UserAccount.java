@@ -35,7 +35,7 @@ import jakarta.persistence.SqlResultSetMapping;
 @NamedNativeQuery(
         name = "UserAccount.getUserAccountMetaData",
         resultSetMapping = "getUserAccountMetaDataMapping",
-        query = "select CAST(u.id as CHAR) as value , u.name as label from user_account u"
+        query = "select TO_CHAR(u.id) as value , u.name as label from user_account u"
 )
 public class UserAccount {
     @Id

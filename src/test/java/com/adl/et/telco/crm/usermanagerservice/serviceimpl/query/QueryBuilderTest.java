@@ -102,22 +102,22 @@ class QueryBuilderTest {
 
     @Test
     void shouldHandleLast30Minutes() {
-        assertDateFilter("last 30 minutes", ">= NOW() - INTERVAL 30 MINUTE");
+        assertDateFilter("last 30 minutes", ">= SYS_EXTRACT_UTC(SYSTIMESTAMP) - INTERVAL '30' MINUTE");
     }
 
     @Test
     void shouldHandleLastDay() {
-        assertDateFilter("last day", ">= NOW() - INTERVAL 1 DAY");
+        assertDateFilter("last day", ">= SYS_EXTRACT_UTC(SYSTIMESTAMP) - INTERVAL '1' DAY");
     }
 
     @Test
     void shouldHandleLastWeek() {
-        assertDateFilter("last week", ">= NOW() - INTERVAL 7 DAY");
+        assertDateFilter("last week", ">= SYS_EXTRACT_UTC(SYSTIMESTAMP) - INTERVAL '7' DAY");
     }
 
     @Test
     void shouldHandleLastYear() {
-        assertDateFilter("last year", ">= NOW() - INTERVAL 1 YEAR");
+        assertDateFilter("last year", ">= SYS_EXTRACT_UTC(SYSTIMESTAMP) - INTERVAL '1' YEAR");
     }
 
     @Test
@@ -133,8 +133,8 @@ class QueryBuilderTest {
         queryBuilder.buildActionLogFiltration(List.of(filter), sql, TABLE);
 
         assertThat(sql.toString())
-                .contains("BETWEEN CONVERT_TZ('2024-01-01" + Constants.TIME_QUERY_START)
-                .contains("AND CONVERT_TZ('2024-01-31" + Constants.TIME_QUERY_END);
+                .contains("BETWEEN CAST(FROM_TZ(TO_TIMESTAMP('2024-01-01" + Constants.TIME_QUERY_START)
+                .contains("AND CAST(FROM_TZ(TO_TIMESTAMP('2024-01-31" + Constants.TIME_QUERY_END);
     }
 
     @Test
@@ -150,7 +150,7 @@ class QueryBuilderTest {
         queryBuilder.buildActionLogFiltration(List.of(filter), sql, TABLE);
 
         assertThat(sql.toString())
-                .contains("BETWEEN CONVERT_TZ('2024-01-01" + Constants.TIME_QUERY_START);
+                .contains("BETWEEN CAST(FROM_TZ(TO_TIMESTAMP('2024-01-01" + Constants.TIME_QUERY_START);
     }
 
     @Test

@@ -68,13 +68,13 @@ import java.util.List;
 @NamedNativeQuery(
         name = "Roles.findRoleListMetaData",
         resultSetMapping = "findRoleListMetaDataMapping",
-        query = "select CAST(r.id as CHAR) as value, r.name as label from roles r  where r.tenant_id = :tenantId"
+        query = "select TO_CHAR(r.id) as value, r.name as label from roles r  where r.tenant_id = :tenantId"
 )
 @NamedNativeQuery(
         name = "Roles.findRoleListView",
         resultSetMapping = "findRoleListViewMapping",
         query = "SELECT\n" +
-                "\tCAST(R.ID AS CHAR) AS roleId,\n" +
+                "\tTO_CHAR(R.ID) AS roleId,\n" +
                 "\tR.name ,\n" +
                 "\tR.description,\n" +
                 "\tTOTAL_COUNT.TOTAL_COUNT AS totalCount\n" +
@@ -88,7 +88,7 @@ import java.util.List;
                 "\t\tR4.tenant_id = :tenantId\n" +
                 "\t\tAND\n" +
                 "\t\t(:roleName IS NULL\n" +
-                "\t\t\tOR R4.name LIKE CONCAT('%',:roleName , '%'))) R\n" +
+                "\t\t\tOR R4.name LIKE '%' || :roleName || '%')) R\n" +
                 "CROSS JOIN (\n" +
                 "\tSELECT\n" +
                 "\t\tCOUNT(*) AS TOTAL_COUNT\n" +
@@ -98,22 +98,22 @@ import java.util.List;
                 "\t\tR3.tenant_id = :tenantId\n" +
                 "\t\tAND\n" +
                 "\t\t(:roleName IS NULL\n" +
-                "\t\t\tOR R3.name LIKE CONCAT('%',:roleName , '%'))) TOTAL_COUNT\n" +
+                "\t\t\tOR R3.name LIKE '%' || :roleName || '%')) TOTAL_COUNT\n" +
                 "ORDER BY R.ID DESC\n" +
-                "LIMIT :limit OFFSET :offset"
+                "OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY"
 )
 @NamedNativeQuery(
         name = "Roles.getRoleDetails",
         resultSetMapping = "getRoleDetailsMapping",
         query = "select\n" +
-                "\t CAST(r.id as CHAR) as roleId,\n" +
+                "\t TO_CHAR(r.id) as roleId,\n" +
                 "\tr.name as roleName ,\n" +
                 "\tr.description,\n" +
-                "\t CAST(m.id as CHAR) as menuId,\n" +
+                "\t TO_CHAR(m.id) as menuId,\n" +
                 "\tm.name as menuName,\n" +
-                "\t CAST(c.id as CHAR) as componentId,\n" +
+                "\t TO_CHAR(c.id) as componentId,\n" +
                 "\tc.name as componentName,\n" +
-                "\t CAST(p.id as CHAR)   as permissionId,\n" +
+                "\t TO_CHAR(p.id)   as permissionId,\n" +
                 "\tp.name as permissionName,\n" +
                 "\tp.description as permissionDescription\n" +
                 "from\n" +
@@ -133,7 +133,7 @@ import java.util.List;
         name = "Roles.getFilteredUserList",
         resultSetMapping = "findRoleListViewMapping",
         query = "SELECT\n" +
-                "    CAST(R.ID AS CHAR) AS roleId,\n" +
+                "    TO_CHAR(R.ID) AS roleId,\n" +
                 "    R.name,\n" +
                 "    R.description,\n" +
                 "    TOTAL_COUNT.TOTAL_COUNT AS totalCount\n" +
@@ -146,20 +146,20 @@ import java.util.List;
                 "        R4.tenant_id = :tenantId\n" +
                 "        AND (\n" +
                 "            (:roleId IS NULL AND :roleIdFilterType IS NULL) OR\n" +
-                "            (:roleIdFilterType = 'Equal' AND CAST(R4.id AS CHAR) = :roleId) OR\n" +
-                "            (:roleIdFilterType = 'Include' AND CAST(R4.id AS CHAR) LIKE CONCAT('%', :roleId, '%')) OR\n" +
+                "            (:roleIdFilterType = 'Equal' AND TO_CHAR(R4.id) = :roleId) OR\n" +
+                "            (:roleIdFilterType = 'Include' AND TO_CHAR(R4.id) LIKE '%' || :roleId || '%') OR\n" +
                 "            (:roleIdFilterType = 'Is empty' AND R4.id IS NULL)\n" +
                 "        )\n" +
                 "        AND (\n" +
                 "            (:name IS NULL AND :nameFilterType IS NULL) OR\n" +
                 "            (:nameFilterType = 'Equal' AND LOWER(R4.name) = LOWER(:name)) OR\n" +
-                "            (:nameFilterType = 'Include' AND LOWER(R4.name) LIKE CONCAT('%', LOWER(:name), '%')) OR\n" +
+                "            (:nameFilterType = 'Include' AND LOWER(R4.name) LIKE '%' || LOWER(:name) || '%') OR\n" +
                 "            (:nameFilterType = 'Is empty' AND R4.name IS NULL)\n" +
                 "        )\n" +
                 "        AND (\n" +
                 "            (:description IS NULL AND :descriptionFilterType IS NULL) OR\n" +
                 "            (:descriptionFilterType = 'Equal' AND LOWER(R4.description) = LOWER(:description)) OR\n" +
-                "            (:descriptionFilterType = 'Include' AND LOWER(R4.description) LIKE CONCAT('%', LOWER(:description), '%')) OR\n" +
+                "            (:descriptionFilterType = 'Include' AND LOWER(R4.description) LIKE '%' || LOWER(:description) || '%') OR\n" +
                 "            (:descriptionFilterType = 'Is empty' AND R4.description IS NULL)\n" +
                 "        )\n" +
                 ") R\n" +
@@ -172,25 +172,25 @@ import java.util.List;
                 "        R3.tenant_id = :tenantId\n" +
                 "        AND (\n" +
                 "            (:roleId IS NULL AND :roleIdFilterType IS NULL) OR\n" +
-                "            (:roleIdFilterType = 'Equal' AND CAST(R3.id AS CHAR) = :roleId) OR\n" +
-                "            (:roleIdFilterType = 'Include' AND CAST(R3.id AS CHAR) LIKE CONCAT('%', :roleId, '%')) OR\n" +
+                "            (:roleIdFilterType = 'Equal' AND TO_CHAR(R3.id) = :roleId) OR\n" +
+                "            (:roleIdFilterType = 'Include' AND TO_CHAR(R3.id) LIKE '%' || :roleId || '%') OR\n" +
                 "            (:roleIdFilterType = 'Is empty' AND R3.id IS NULL)\n" +
                 "        )\n" +
                 "        AND (\n" +
                 "            (:name IS NULL AND :nameFilterType IS NULL) OR\n" +
                 "            (:nameFilterType = 'Equal' AND LOWER(R3.name) = LOWER(:name)) OR\n" +
-                "            (:nameFilterType = 'Include' AND LOWER(R3.name) LIKE CONCAT('%', LOWER(:name), '%')) OR\n" +
+                "            (:nameFilterType = 'Include' AND LOWER(R3.name) LIKE '%' || LOWER(:name) || '%') OR\n" +
                 "            (:nameFilterType = 'Is empty' AND R3.name IS NULL)\n" +
                 "        )\n" +
                 "        AND (\n" +
                 "            (:description IS NULL AND :descriptionFilterType IS NULL) OR\n" +
                 "            (:descriptionFilterType = 'Equal' AND LOWER(R3.description) = LOWER(:description)) OR\n" +
-                "            (:descriptionFilterType = 'Include' AND LOWER(R3.description) LIKE CONCAT('%', LOWER(:description), '%')) OR\n" +
+                "            (:descriptionFilterType = 'Include' AND LOWER(R3.description) LIKE '%' || LOWER(:description) || '%') OR\n" +
                 "            (:descriptionFilterType = 'Is empty' AND R3.description IS NULL)\n" +
                 "        )\n" +
                 ") TOTAL_COUNT\n" +
                 "ORDER BY R.id DESC\n" +
-                "LIMIT :limit OFFSET :offset"
+                "OFFSET :offset ROWS FETCH NEXT :limit ROWS ONLY"
 )
 
 public class Roles {
